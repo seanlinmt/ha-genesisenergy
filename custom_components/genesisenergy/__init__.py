@@ -1,4 +1,4 @@
-"""Support for Frank Energy sensors."""
+"""Support for Genesis Energy sensors."""
 
 import logging
 
@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
 from .const import DOMAIN, PLATFORMS
-from .api import FrankEnergyApi
+from .api import GenesisEnergyApi
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     email = entry.data.get("email")
     password = entry.data.get("password")
 
-    api = FrankEnergyApi(email, password)
+    api = GenesisEnergyApi(email, password)
 
     await api.get_refresh_token()
 

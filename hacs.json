@@ -1,9 +1,9 @@
 {
-	"name": "Frank Energy",
+	"name": "Genesis Energy",
 	"country": [
 		"NZ"
 	],
-	"filename": "frankenergy.zip",
+	"filename": "genesisenergy.zip",
 	"hide_default_branch": true,
 	"render_readme": true,
 	"zip_release": true

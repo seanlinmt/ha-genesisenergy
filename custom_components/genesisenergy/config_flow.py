@@ -1,4 +1,4 @@
-"""Config flow for Frank Energy integration."""
+"""Config flow for Genesis Energy integration."""
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
@@ -8,7 +8,7 @@ import voluptuous as vol
 from .const import DOMAIN, SENSOR_NAME
 
 @config_entries.HANDLERS.register(DOMAIN)
-class FrankEnergyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class GenesisEnergyConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Define the config flow."""
 
     VERSION = 1

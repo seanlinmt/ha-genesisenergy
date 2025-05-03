@@ -1,4 +1,4 @@
-"""Frank Energy API."""
+"""Genesis Energy API."""
 
 import aiohttp
 import logging
@@ -17,16 +17,16 @@ _LOGGER = logging.getLogger(__name__)
 # requests_log.setLevel(logging.DEBUG)
 # requests_log.propagate = True
 
-class FrankEnergyApi:
-    """Define the Frank Energy API."""
+class GenesisEnergyApi:
+    """Define the Genesis Energy API."""
 
     def __init__(self, email, password):
         """Initialise the API."""
         _LOGGER.warning("__init__")
-        self._client_id = "9b63be56-54d0-4706-bfb5-69707d4f4f89"
-        self._redirect_uri = 'eol://oauth/redirect',
-        self._url_token_base = "https://energyonlineb2cprod.b2clogin.com/energyonlineb2cprod.onmicrosoft.com"
-        self._url_data_base = "https://mobile-api.energyonline.co.nz"
+        self._client_id = "8e41676f-7601-4490-9786-85d74f387f47"
+        self._redirect_uri = 'https://myaccount.genesisenergy.co.nz/auth/redirect',
+        self._url_token_base = "https://auth.genesisenergy.co.nz/auth.genesisenergy.co.nz"
+        self._url_data_base = "https://web-api.genesisenergy.co.nz/"
         self._p = "B2C_1A_signin"
 
         self._email = email
@@ -60,7 +60,7 @@ class FrankEnergyApi:
                 'response_type': 'code',
                 'response_mode': 'query',
                 'scope': scope,
-                'redirect_uri': 'eol://oauth/redirect',
+                'redirect_uri': 'https://myaccount.genesisenergy.co.nz/auth/redirect',
             }
 
             _LOGGER.debug("Step: 1")
@@ -160,7 +160,7 @@ class FrankEnergyApi:
             _LOGGER.debug("Refresh token retrieved successfully")
 
     async def get_api_token(self):
-        """Get token from the Frank Energy API."""
+        """Get token from the Genesis Energy API."""
         token_data = {
             "p": self._p,
             "grant_type": "refresh_token",
@@ -179,7 +179,7 @@ class FrankEnergyApi:
                     _LOGGER.error("Failed to retrieve the token page.")
 
 
-    async def get_data(self):
+    async def get_energy_data(self):
         """Get data from the API."""
 
         access_token_threshold = timedelta(minutes=5).total_seconds()
@@ -194,9 +194,6 @@ class FrankEnergyApi:
 
         headers = {
             "authorization":  "Bearer " + self._token,
-            "brand-id": "GEOL",
-            "platform": "Android",
-            "mobile-build-number": "1"
         }
 
         # API only returns 120 usage items (starting from the from_date).
@@ -205,10 +202,55 @@ class FrankEnergyApi:
         to_date = datetime.now()
         from_date = to_date - timedelta(days=4) # fetch 4 days worth of data
 
-        url = f"{self._url_data_base}/v2/private/usage/electricity/aggregatedSiteUsage/hourly"
+        url = f"{self._url_data_base}/v2/private/electricity/site-usage"
         params = {
             'startDate': from_date.strftime("%Y-%m-%d"),
             'endDate': to_date.strftime("%Y-%m-%d"),
+            'intervalType': "HOURLY"
+        }
+
+        async with aiohttp.ClientSession() as session, \
+                session.post(url, headers=headers, json=params) as response:
+            if response.status == 200:
+                data = await response.json()
+                # _LOGGER.debug(f"get_data returned data: {data}")
+                if not data:
+                    _LOGGER.warning("Fetched consumption successfully but there was no data")
+                return data
+            else:
+                message = await response.text()
+                _LOGGER.error("Could not fetch consumption, error: %s", message)
+                return None
+            
+
+    async def get_gas_data(self):
+        """Get data from the API."""
+
+        access_token_threshold = timedelta(minutes=5).total_seconds()
+        if self._access_token_expires_in <= access_token_threshold:
+            _LOGGER.warning("Access token needs renewing")
+            await self.get_api_token()
+
+        refresh_token_threshold = timedelta(minutes=5).total_seconds()
+        if self._refresh_token_expires_in <= refresh_token_threshold:
+            _LOGGER.warning("Refresh token needs renewing")
+            await self.get_refresh_token()
+
+        headers = {
+            "authorization":  "Bearer " + self._token,
+        }
+
+        # API only returns 120 usage items (starting from the from_date).
+        # If you want to query more than ~4 days of hourly data, at a time you need to split it into multiple requests
+        # or the the latest usage will not be returned.
+        to_date = datetime.now()
+        from_date = to_date - timedelta(days=4) # fetch 4 days worth of data
+
+        url = f"{self._url_data_base}/v2/private/naturalgas/advanced/usage"
+        params = {
+            'startDate': from_date.strftime("%Y-%m-%d"),
+            'endDate': to_date.strftime("%Y-%m-%d"),
+            'intervalType': "HOURLY"
         }
 
         async with aiohttp.ClientSession() as session, \
@@ -220,5 +262,7 @@ class FrankEnergyApi:
                     _LOGGER.warning("Fetched consumption successfully but there was no data")
                 return data
             else:
-                _LOGGER.error("Could not fetch consumption")
+                message = await response.text()
+                _LOGGER.error("Could not fetch consumption, error: %s", message)
                 return None
+            
