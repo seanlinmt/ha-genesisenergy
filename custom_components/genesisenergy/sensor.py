@@ -43,7 +43,7 @@ class GenesisEnergyUsageSensor(SensorEntity):
         self._state = None
         self._unit_of_measurement = "kWh"
         self._currency = "NZD"
-        self._unique_id = DOMAIN
+        self._unique_id = f"{DOMAIN}_energy_usage"
         self._device_class = "energy"
         self._state_class = "total"
         self._last_reset = None
@@ -192,7 +192,7 @@ class GenesisEnergyUsageSensor(SensorEntity):
               name= self._cost_sensor_name,
               source= DOMAIN,
               statistic_id= self._cost_sensor_id,
-              unit_of_measurement= self._unit_of_measurement,
+              unit_of_measurement= self._currency,
           )
           try:
             _LOGGER.debug(f"Cost statistics: {cost_statistics}")
@@ -215,7 +215,7 @@ class GenesisEnergyGasUsageSensor(SensorEntity):
         self._state = None
         self._unit_of_measurement = "kWh"
         self._currency = "NZD"
-        self._unique_id = DOMAIN
+        self._unique_id = f"{DOMAIN}_gas_usage"
         self._device_class = "gas"
         self._state_class = "total"
         self._last_reset = None
@@ -364,7 +364,7 @@ class GenesisEnergyGasUsageSensor(SensorEntity):
               name= self._cost_sensor_name,
               source= DOMAIN,
               statistic_id= self._cost_sensor_id,
-              unit_of_measurement= self._unit_of_measurement,
+              unit_of_measurement= self._currency,
           )
           try:
             _LOGGER.debug(f"Cost statistics: {cost_statistics}")

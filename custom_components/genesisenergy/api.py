@@ -22,7 +22,6 @@ class GenesisEnergyApi:
 
     def __init__(self, email, password):
         """Initialise the API."""
-        _LOGGER.warning("__init__")
         self._client_id = "8e41676f-7601-4490-9786-85d74f387f47"
         self._redirect_uri = 'https://myaccount.genesisenergy.co.nz/auth/redirect',
         self._url_token_base = "https://auth.genesisenergy.co.nz/auth.genesisenergy.co.nz"
