@@ -264,4 +264,37 @@ class GenesisEnergyApi:
                 message = await response.text()
                 _LOGGER.error("Could not fetch consumption, error: %s", message)
                 return None
-            
+      
+    async def get_powershout_balance(self):
+        """Get data from the API."""
+
+        access_token_threshold = timedelta(minutes=5).total_seconds()
+        if self._access_token_expires_in <= access_token_threshold:
+            _LOGGER.warning("Access token needs renewing")
+            await self.get_api_token()
+
+        refresh_token_threshold = timedelta(minutes=5).total_seconds()
+        if self._refresh_token_expires_in <= refresh_token_threshold:
+            _LOGGER.warning("Refresh token needs renewing")
+            await self.get_refresh_token()
+
+        headers = {
+            "authorization":  "Bearer " + self._token,
+        }
+
+        url = f"{self._url_data_base}/v2/private/powershoutcurrency/balance"
+        params = {
+        }
+
+        async with aiohttp.ClientSession() as session, \
+                session.get(url, headers=headers, params=params) as response:
+            if response.status == 200:
+                data = await response.json()
+                # _LOGGER.debug(f"get_data returned data: {data}")
+                if not data:
+                    _LOGGER.warning("Fetched powershout balance successfully but there was no data")
+                return data
+            else:
+                message = await response.text()
+                _LOGGER.error("Could not fetch powershout balance, error: %s", message)
+                return None

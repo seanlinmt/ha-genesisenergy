@@ -33,6 +33,8 @@ async def async_setup_entry(
     api = hass.data[DOMAIN]["api"]
     async_add_entities([GenesisEnergyUsageSensor(SENSOR_NAME, api)], True)
     async_add_entities([GenesisEnergyGasUsageSensor(SENSOR_NAME, api)], True)
+    async_add_entities([GenesisEnergyPowerShoutSensor("PowerShout", api)], True)
+    
 
 class GenesisEnergyUsageSensor(SensorEntity):
     """Define Genesis Energy Usage sensor."""
@@ -377,3 +379,72 @@ class GenesisEnergyGasUsageSensor(SensorEntity):
       else:
           _LOGGER.warning("No daily gas cost statistics found, skipping update")
 
+
+class GenesisEnergyPowerShoutSensor(SensorEntity):
+    """Define Genesis Energy Powershout sensor."""
+
+    def __init__(self, name, api):
+        """Initialize Genesis Energy Powershout sensor."""
+        self._name = name
+        self._state = None
+        self._unit_of_measurement = None
+        self._native_value = int
+        self._unique_id = f"{DOMAIN}_powershout_balance"
+        self._device_class = None
+        self._state_class = None
+        self._last_reset = None
+        self._api = api
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def icon(self):
+        """Icon to use in the frontend, if any."""
+        return self._icon
+
+    @property
+    def state(self):
+        """Return the state of the device."""
+        return None
+
+    @property
+    def native_value(self):
+        """Returns the native value of the sensor."""
+        return self._native_value
+    
+    @property
+    def state_class(self):
+        """Return the state class."""
+        return self._state_class
+
+    @property
+    def device_class(self):
+        """Return the device class."""
+        return self._device_class
+
+    @property
+    def unique_id(self):
+        """Return the unique id."""
+        return self._unique_id
+
+    async def async_update(self):
+        """Update the sensor data."""
+        _LOGGER.debug("Beginning sensor update")
+        response = await self._api.get_powershout_balance()
+        if not response:
+          _LOGGER.warning("No sensor data available, skipping processing")
+          return
+        await self.process_data(response)
+
+    async def process_data(self, data):
+      """Process powershout balance"""
+      balance = data.get("balance")
+      if not balance:
+          _LOGGER.warning("Could not obtain powershout balance, skipping processing")
+          return
+      
+      _LOGGER.debug(f"Powershout balance: {balance}")
+      self._native_value = balance
